@@ -1,0 +1,85 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: {{ .Values.app.name }}
+spec:
+  ports:
+    - port: 8082
+      name: http
+    - port: 8081
+      name: grpc
+  selector:
+    app: user-service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.services.user.replicas }}
+  selector:
+    matchLabels:
+      app: user-service
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: {{ .Values.app.services.user.image }}
+          ports:
+            - containerPort: 8082
+            - containerPort: 8081
+          env:
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_USER
+              value: {{ .Values.app.database.postgres.username }}
+            - name: DB_PASSWORD
+              value: {{ .Values.app.database.postgres.password }}
+            - name: DB_NAME
+              value: {{ .Values.app.services.user.database }}
+            - name: RABBIT_HOST
+              value: "rabbitmq"
+            - name: RABBIT_PORT
+              value: "5672"
+            - name: RABBIT_USER
+              value: "guest"
+            - name: RABBIT_PASSWORD
+              value: "guest"
+            - name: GIN_MODE
+              value: "release"
+            - name: FLUENTD_HOST
+              value: "fluent-bit"
+            - name: FLUENTD_PORT
+              value: "9880"
+
+{{- if .Values.app.services.user.ingress_host | default }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: user-service-ingress
+  namespace: {{ .Values.app.name }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Values.app.services.user.ingress_host | default }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8082
+{{- end }}

@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: collection-service
+  namespace: {{ .Values.app.name }}
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+      name: http
+    - port: 50051
+      targetPort: 50051
+      name: grpc
+  selector:
+    app: collection-service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: collection-service
+  namespace: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.services.collection.replicas }}
+  selector:
+    matchLabels:
+      app: collection-service
+  template:
+    metadata:
+      labels:
+        app: collection-service
+    spec:
+      containers:
+        - name: collection-service
+          image: {{ .Values.app.services.collection.image }}
+          ports:
+            - containerPort: 8000
+            - containerPort: 50051
+          env:
+            - name: SECRET_KEY_DJANGO
+              valueFrom:
+                secretKeyRef:
+                  name: collection-service-secret
+                  key: SECRET_KEY_DJANGO
+            - name: DJANGO_SETTINGS_MODULE
+              value: {{ .Values.app.services.collection.django_settings_module}}
+            - name: DB_NAME
+              value: {{ .Values.app.services.collection.database }}
+            - name: DB_USER
+              value: {{ .Values.app.database.postgres.username }}
+            - name: DB_PASSWORD
+              value: {{ .Values.app.database.postgres.password }}
+            - name: DB_HOST
+              value: "postgres"
+            - name: DB_PORT
+              value: "5432"
+            - name: RABBITMQ_USER
+              value: "guest"
+            - name: RABBITMQ_PASSWORD
+              value: "guest"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_EXCHANGE
+              value: {{ .Values.app.database.rabbitmq.exchange }}
+            - name: RABBITMQ_ROUTING_KEYS_COLLECTION
+              value: {{ .Values.app.services.collection.rabbitmq_routing_keys }}
+            - name: GRPC_HOST_RECIPE_SERVICE
+              value: "recipe-service"
+            - name: GRPC_PORT_RECIPE_SERVICE
+              value: "9090"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: collection-service-secret
+  namespace: {{ .Values.app.name }}
+type: Opaque
+data:
+  SECRET_KEY_DJANGO: ZGphbmdvLWluc2VjdXJlLXZtJCs9YjgrcyY1NG02Knl6KmgmN20yYjBucV8rdWpnMzBha2dzJSt2NWp3IXBfPXhn
+
+{{- if .Values.app.services.collection.ingress_host | default }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: collection-service-ingress
+  namespace: {{ .Values.app.name }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Values.app.services.collection.ingress_host | default }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: collection-service
+                port:
+                  number: 8000
+{{- end }}

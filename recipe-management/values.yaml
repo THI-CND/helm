@@ -1,1 +1,74 @@
+app:
+  name: recipe-management
 
+  database:
+    fluentbit:
+      version: latest
+
+    postgres:
+      version: latest
+      username: postgres
+      password: password
+      databases: recipe,collection,notification,users,ingredient,review,shoppinglist
+
+    rabbitmq:
+      version: 3-management
+      exchange: recipemanagement
+
+    redis:
+      version: latest
+
+  services:
+    collection:
+      image: ghcr.io/thi-cnd/collection_service:latest
+      replicas: 1
+      django_settings_module: config.settings.development
+      database: collection
+      rabbitmq_routing_keys: collection.created,collection.updated,collection.deleted
+      # ingress_host: collection-service.k8s.bieggerm.com
+
+    feed:
+      image: ghcr.io/thi-cnd/feed_service:latest
+      replicas: 1
+      # ingress_host: feed-service.k8s.bieggerm.com
+
+    ingredient:
+      image: ghcr.io/thi-cnd/ingredient_service:latest
+      replicas: 1
+      # ingress_host: ingredient-service.k8s.bieggerm.com
+
+    notification:
+      image: ghcr.io/thi-cnd/notification_service:latest
+      replicas: 1
+      rabbitmq_routing_keys:
+        collection: collection.created,collection.updated,collection.deleted
+        review: review.created
+        user: users.count
+      rabbitmq_queue:
+        collection: collection.queue
+        review: review.queue
+        user: user.queue
+      # ingress_host: notification-service.k8s.bieggerm.com
+
+    recipe:
+      image: ghcr.io/thi-cnd/recipe_service:latest
+      replicas: 2
+      redis_database: 1
+      # ingress_host: recipe-service.k8s.bieggerm.com
+
+    review:
+      image: ghcr.io/thi-cnd/review_service:latest
+      replicas: 1
+      # ingress_host: review-service.k8s.bieggerm.com
+
+    shoppinglist:
+      image: ghcr.io/thi-cnd/shoppinglist_service:latest
+      replicas: 1
+      database: shoppinglist
+      # ingress_host: shopping-list-service.k8s.bieggerm.com
+
+    user:
+      image: ghcr.io/thi-cnd/user_service:latest
+      replicas: 1
+      database: users
+      # ingress_host: user-service.k8s.bieggerm.com

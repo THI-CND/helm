@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: {{ .Values.app.name }}
+  labels:
+    app: redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: "redis:{{ .Values.app.database.redis.version }}"
+        command: ["redis-server", "/usr/local/etc/redis/redis.conf"] 
+        volumeMounts:
+        - name: redis-config-volume
+          mountPath: /usr/local/etc/redis
+        ports:
+        - containerPort: 6379
+      volumes:
+      - name: redis-config-volume
+        configMap:
+          name: redis-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Values.app.name }}
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: redis
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+  namespace: {{ .Values.app.name }}
+data:
+  redis.conf: |
+    requirepass password

@@ -1,0 +1,77 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingredient-service
+  namespace: {{ .Values.app.name }}
+spec:
+  ports:
+    - port: 8080
+      name: http
+    - port: 9090
+      name: grpc
+  selector:
+    app: ingredient-service
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingredient-service
+  namespace: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.services.ingredient.replicas }}
+  selector:
+    matchLabels:
+      app: ingredient-service
+  template:
+    metadata:
+      labels:
+        app: ingredient-service
+    spec:
+      containers:
+        - name: ingredient-service
+          image: {{ .Values.app.services.ingredient.image }}
+          ports:
+            - containerPort: 8080
+            - containerPort: 9090
+          env:
+            - name: DB_URL
+              value: jdbc:postgresql://postgres:5432/ingredient
+            - name: DB_USER
+              value: {{ .Values.app.database.postgres.username }}
+            - name: DB_PASSWORD
+              value: {{ .Values.app.database.postgres.password }}
+            - name: RABBIT_HOST
+              value: rabbitmq
+            - name: RABBIT_PORT
+              value: "5672"
+            - name: RABBIT_USER
+              value: guest
+            - name: RABBIT_PASSWORD
+              value: guest
+            - name: RABBIT_EXCHANGE
+              value: {{ .Values.app.database.rabbitmq.exchange }}
+
+{{- if .Values.app.services.ingredient.ingress_host | default }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingredient-service-ingress
+  namespace: {{ .Values.app.name }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Values.app.services.ingredient.ingress_host | default }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ingredient-service
+                port:
+                  number: 8080
+{{- end }}

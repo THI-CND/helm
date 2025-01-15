@@ -72,3 +72,8 @@ app:
       replicas: 1
       database: users
       # ingress_host: user-service.k8s.bieggerm.com
+
+  frontend:
+    image: ghcr.io/thi-cnd/frontend:latest
+    replicas: 1
+    ingress_host: cnd.benedikt-schwering.de

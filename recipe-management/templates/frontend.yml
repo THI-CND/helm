@@ -1,0 +1,156 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: {{ .Values.app.name }}
+spec:
+  ports:
+    - port: 80
+      name: http
+  selector:
+    app: frontend
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: {{ .Values.app.name }}
+spec:
+  replicas: {{ .Values.app.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ .Values.app.frontend.image }}
+          ports:
+            - containerPort: 80
+
+{{- if .Values.app.frontend.ingress_host | default }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: {{ .Values.app.name }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: {{ .Values.app.frontend.ingress_host | default }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+
+          - path: /api/v1/recipe
+            pathType: Prefix
+            backend:
+              service:
+                name: recipe-service
+                port:
+                  number: 8080
+          - path: /api/v2/recipe
+            pathType: Prefix
+            backend:
+              service:
+                name: recipe-service
+                port:
+                  number: 8080
+          
+          - path: /api/v1/collections
+            pathType: Prefix
+            backend:
+              service:
+                name: collection-service
+                port:
+                  number: 8000
+          - path: /api/v2/collections
+            pathType: Prefix
+            backend:
+              service:
+                name: collection-service
+                port:
+                  number: 8000
+
+          - path: /api/v1/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 8080
+          - path: /api/v2/notifications
+            pathType: Prefix
+            backend:
+              service:
+                name: notification-service
+                port:
+                  number: 8080
+          
+          - path: /api/v1/users
+            pathType: Prefix
+            backend:
+              service:
+                name: user-service
+                port:
+                  number: 8082
+
+          - path: /api/v1/ingredients
+            pathType: Prefix
+            backend:
+              service:
+                name: ingredients-service
+                port:
+                  number: 8080
+          - path: /api/v2/ingredients
+            pathType: Prefix
+            backend:
+              service:
+                name: ingredients-service
+                port:
+                  number: 8080
+          
+          - path: /api/v1/reviews
+            pathType: Prefix
+            backend:
+              service:
+                name: review-service
+                port:
+                  number: 8080
+
+          - path: /api/v1/feed
+            pathType: Prefix
+            backend:
+              service:
+                name: feed-service
+                port:
+                  number: 8000
+
+          - path: /api/v1/shopping-list
+            pathType: Prefix
+            backend:
+              service:
+                name: shoppinglist-service
+                port:
+                  number: 3000
+          - path: /api/v2/shopping-list
+            pathType: Prefix
+            backend:
+              service:
+                name: shoppinglist-service
+                port:
+                  number: 3000
+{{- end }}

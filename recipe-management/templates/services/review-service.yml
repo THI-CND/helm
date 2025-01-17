@@ -54,7 +54,7 @@ spec:
             - name: RABBIT_EXCHANGE
               value: {{ .Values.app.database.rabbitmq.exchange }}
             - name: USER_SERVICE_ADDRESS
-              value: "user-service:8081"
+              value: "user-service:9090"
 
 {{- if .Values.app.services.review.ingress_host | default }}
 ---

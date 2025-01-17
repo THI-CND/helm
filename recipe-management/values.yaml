@@ -53,7 +53,7 @@ app:
 
     recipe:
       image: ghcr.io/thi-cnd/recipe_service:latest
-      replicas: 2
+      replicas: 1
       redis_database: 1
       # ingress_host: recipe-service.k8s.bieggerm.com
 
@@ -77,4 +77,4 @@ app:
   frontend:
     image: ghcr.io/thi-cnd/frontend:latest
     replicas: 1
-    ingress_host: cnd.benedikt-schwering.de
+    ingress_host: localhost

@@ -80,7 +80,7 @@ metadata:
   namespace: {{ .Values.app.name }}
 type: Opaque
 data:
-  SECRET_KEY_DJANGO: ZGphbmdvLWluc2VjdXJlLXZtJCs9YjgrcyY1NG02Knl6KmgmN20yYjBucV8rdWpnMzBha2dzJSt2NWp3IXBfPXhn
+  SECRET_KEY_DJANGO: {{ .Values.app.services.collection.secret_key_django }}
 
 {{- if .Values.app.services.collection.ingress_host | default }}
 ---

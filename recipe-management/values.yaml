@@ -22,7 +22,7 @@ app:
     collection:
       image: ghcr.io/thi-cnd/collection_service:latest
       replicas: 1
-      django_settings_module: config.settings.development
+      django_settings_module: config.settings.production
       database: collection
       rabbitmq_routing_keys: collection.created,collection.updated,collection.deleted
       secret_key_django: ZGphbmdvLWluc2VjdXJlLXZtJCs9YjgrcyY1NG02Knl6KmgmN20yYjBucV8rdWpnMzBha2dzJSt2NWp3IXBfPXhn 

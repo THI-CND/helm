@@ -13,3 +13,4 @@ Um das Projekt zu entfernen, kann dieser Befehl verwendet werden:
 ```bash
 helm uninstall recipe-management-app
 ```
+Der Standardnutzer lautet `user1` mit Passwort `password`.

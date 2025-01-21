@@ -36,6 +36,8 @@ spec:
             - containerPort: 8080
             - containerPort: 9090
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production"
             - name: DB_URL
               value: "jdbc:postgresql://postgres:5432/recipe"
             - name: DB_USER

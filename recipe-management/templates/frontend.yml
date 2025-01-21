@@ -119,14 +119,14 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: ingredients-service
+                name: ingredient-service
                 port:
                   number: 8080
           - path: /api/v2/ingredients
             pathType: Prefix
             backend:
               service:
-                name: ingredients-service
+                name: ingredient-service
                 port:
                   number: 8080
           
@@ -144,7 +144,7 @@ spec:
               service:
                 name: feed-service
                 port:
-                  number: 8000
+                  number: 8085
 
           - path: /api/v1/shopping-list
             pathType: Prefix

@@ -15,3 +15,6 @@ Um das Projekt zu entfernen, kann dieser Befehl verwendet werden:
 helm uninstall recipe-management-app
 ```
 Der Standardnutzer lautet `user1` mit Passwort `password`.
+
+# Architektur
+![](media/Infrastructure_Let_Him_Cook.png)
